@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dashboard IKU PMDK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --tosca-950:#073835; --tosca-900:#0B4F4A; --tosca-700:#0F6E67; --tosca-600:#12867C; --tosca-400:#3FBFB2; --tosca-200:#A8E3DB; --tosca-100:#DDF3F0; --tosca-50:#EFF9F7;
+  --bg:#F3F8F7; --panel:#FFFFFF; --ink:#12302D; --muted:#5B7572; --line:#D5E5E2; --soft:#EAF3F1;
+  --ok:#12867C; --warn:#D99A1E; --bad:#D2554B; --none:#AFC0BD;
+  --band:#0B4F4A; --band-ink:#E9FBF8; --band-muted:#9FD3CC;
+  --font:"Plus Jakarta Sans", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0A1A19; --panel:#102422; --ink:#E3F3F1; --muted:#93B2AE; --line:#21403C; --soft:#163230;
+    --ok:#3FBFB2; --warn:#E8B04A; --bad:#E5776E; --none:#4F6B67;
+    --band:#062C29; --band-ink:#E9FBF8; --band-muted:#8CC7BF;
+    --tosca-100:#16403B; --tosca-50:#12302D;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0A1A19; --panel:#102422; --ink:#E3F3F1; --muted:#93B2AE; --line:#21403C; --soft:#163230;
+  --ok:#3FBFB2; --warn:#E8B04A; --bad:#E5776E; --none:#4F6B67;
+  --band:#062C29; --band-ink:#E9FBF8; --band-muted:#8CC7BF;
+  --tosca-100:#16403B; --tosca-50:#12302D;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--tosca-400);outline-offset:2px;border-radius:6px}
+.wrap{max-width:1240px;margin:0 auto;padding:0 20px}
+
+/* ---------- band / hero ---------- */
+.band{background:var(--band);color:var(--band-ink);position:relative;overflow:hidden}
+.band::after{content:"";position:absolute;right:-120px;top:-160px;width:520px;height:520px;border-radius:50%;
+  border:70px solid rgba(63,191,178,.10);pointer-events:none}
+.topbar{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;justify-content:space-between;padding:22px 0 8px;position:relative;z-index:1}
+.brand h1{margin:0;font-size:clamp(20px,2.6vw,28px);font-weight:800;letter-spacing:-.02em;line-height:1.15}
+.brand p{margin:4px 0 0;color:var(--band-muted);font-size:14px;max-width:62ch}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(233,251,248,.28);background:rgba(255,255,255,.06);color:var(--band-ink);
+  padding:9px 14px;border-radius:10px;cursor:pointer;font-weight:600;font-size:14px;transition:background .15s}
+.btn:hover{background:rgba(255,255,255,.14)}
+.btn.primary{background:var(--tosca-400);border-color:var(--tosca-400);color:#062C29}
+.btn.primary:hover{background:#5ED0C4}
+.btn svg{width:16px;height:16px;flex:none}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+
+.period{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:10px 0 4px;position:relative;z-index:1}
+.period label{font-size:13px;color:var(--band-muted)}
+.sel{background:rgba(255,255,255,.08);border:1px solid rgba(233,251,248,.25);border-radius:10px;padding:7px 10px;color:var(--band-ink)}
+.sel option{color:#12302D}
+.seg{display:inline-flex;background:rgba(0,0,0,.18);border-radius:11px;padding:3px}
+.seg button{border:0;background:transparent;color:var(--band-muted);padding:6px 13px;border-radius:8px;cursor:pointer;font-weight:600;font-size:13.5px}
+.seg button[aria-pressed="true"]{background:var(--band-ink);color:var(--tosca-900)}
+.sync{font-size:12.5px;color:var(--band-muted);margin-left:auto}
+
+.hero{display:grid;grid-template-columns:minmax(220px,300px) 1fr;gap:28px;padding:20px 0 30px;position:relative;z-index:1;align-items:end}
+.avg-label{font-size:14px;color:var(--band-muted)}
+.avg-num{font-size:clamp(56px,8vw,92px);font-weight:800;letter-spacing:-.04em;line-height:.95;margin:6px 0 8px}
+.avg-num small{font-size:.42em;font-weight:700;letter-spacing:0;margin-left:2px;color:var(--band-muted)}
+.avg-sub{font-size:13.5px;color:var(--band-muted)}
+.strip-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.strip-head h2{margin:0;font-size:15px;font-weight:700}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12.5px;color:var(--band-muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:6px}
+.tile{border:0;border-radius:9px;padding:8px 6px 7px;text-align:left;cursor:pointer;color:#06302C;min-height:58px;display:flex;flex-direction:column;justify-content:space-between}
+.tile b{font-size:13px;font-weight:800;line-height:1}
+.tile span{font-size:11.5px;font-weight:600;opacity:.85}
+.tile.k-ok{background:#3FBFB2}
+.tile.k-warn{background:#F2C14E}
+.tile.k-bad{background:#F08A80}
+.tile.k-none{background:rgba(233,251,248,.18);color:var(--band-ink)}
+.tile:hover{filter:brightness(1.07)}
+
+/* ---------- stat rail ---------- */
+.rail{display:grid;grid-template-columns:repeat(6,1fr);background:var(--panel);border:1px solid var(--line);border-radius:14px;margin-top:-18px;position:relative;z-index:2;overflow:hidden}
+.stat{padding:16px 18px;border-left:1px solid var(--line)}
+.stat:first-child{border-left:0}
+.stat .l{font-size:13px;color:var(--muted);font-weight:500}
+.stat .v{font-size:26px;font-weight:800;letter-spacing:-.02em;margin:2px 0}
+.stat .v em{font-style:normal;font-size:15px;color:var(--muted);font-weight:600}
+.stat .s{font-size:12.5px;color:var(--muted)}
+
+/* ---------- sections ---------- */
+main{padding:28px 0 40px}
+.sec{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:20px}
+.sec-h{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between;margin-bottom:14px}
+.sec-h h2{margin:0;font-size:18px;font-weight:800;letter-spacing:-.01em}
+.sec-h p{margin:2px 0 0;font-size:13.5px;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.grid2 .sec{margin-bottom:0}
+.row-gap{margin-bottom:20px}
+
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.field{background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:7px 10px;font-size:14px}
+.chip{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:5px 11px;font-size:13px;cursor:pointer;font-weight:600;color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--tosca-900);border-color:var(--tosca-900);color:#fff}
+
+.tbl-wrap{overflow-x:auto;margin:0 -4px}
+table{border-collapse:collapse;width:100%;min-width:880px}
+th{font-size:12.5px;color:var(--muted);font-weight:600;text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:10px;border-bottom:1px solid var(--soft);vertical-align:top;font-size:14px}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;white-space:nowrap}
+.kode{font-weight:700;color:var(--tosca-600);white-space:nowrap}
+:root[data-theme="dark"] .kode{color:var(--tosca-400)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .kode{color:var(--tosca-400)}}
+.nm{font-weight:600;line-height:1.35;max-width:46ch}
+.nm small{display:block;color:var(--muted);font-weight:500;font-size:12.5px;margin-top:2px}
+tr.flash td{background:var(--tosca-50)}
+.sifat{display:inline-block;padding:3px 9px;border-radius:7px;font-size:12px;font-weight:600;white-space:nowrap;background:var(--tosca-100);color:var(--tosca-900)}
+:root[data-theme="dark"] .sifat{color:var(--tosca-200)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .sifat{color:var(--tosca-200)}}
+.cap{display:flex;align-items:center;gap:10px;min-width:170px}
+.bar{flex:1;height:8px;background:var(--soft);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:99px}
+.cap b{width:56px;text-align:right;font-size:13.5px}
+.pill{display:inline-block;padding:3px 9px;border-radius:99px;font-size:12px;font-weight:700;white-space:nowrap}
+.p-ok{background:color-mix(in srgb,var(--ok) 16%,transparent);color:var(--ok)}
+.p-warn{background:color-mix(in srgb,var(--warn) 18%,transparent);color:#9A6A08}
+.p-bad{background:color-mix(in srgb,var(--bad) 15%,transparent);color:var(--bad)}
+.p-none{background:var(--soft);color:var(--muted)}
+:root[data-theme="dark"] .p-warn{color:var(--warn)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .p-warn{color:var(--warn)}}
+.c-ok{background:var(--ok)} .c-warn{background:var(--warn)} .c-bad{background:var(--bad)} .c-none{background:var(--none)}
+.empty{padding:24px;text-align:center;color:var(--muted)}
+
+/* group rows (satker / sasaran) */
+.grp{display:grid;grid-template-columns:minmax(70px,auto) 1fr 64px;gap:6px 14px;align-items:center}
+.grp .g-name{font-weight:700;font-size:14px}
+.grp .g-name small{display:block;font-weight:500;color:var(--muted);font-size:12px}
+.stack{display:flex;height:22px;border-radius:7px;overflow:hidden;background:var(--soft)}
+.stack i{display:flex;align-items:center;justify-content:center;font-style:normal;font-size:11.5px;font-weight:700;color:#fff;min-width:0}
+.stack i.c-warn{color:#3A2A00}
+.g-avg{text-align:right;font-weight:800;font-size:15px}
+.grp-sep{grid-column:1/-1;height:1px;background:var(--soft);margin:4px 0}
+.sas .grp{grid-template-columns:1fr 64px}
+.sas .g-name{grid-column:1/-1;font-weight:600;font-size:13.5px;line-height:1.35;margin-top:4px}
+
+.chart-box{position:relative}
+.donut-wrap{display:flex;gap:22px;align-items:center;flex-wrap:wrap}
+.donut-wrap svg{width:180px;height:180px;flex:none}
+.dl{display:grid;gap:10px;flex:1;min-width:180px}
+.dl div{display:flex;align-items:center;gap:10px;font-size:14px}
+.dl i{width:12px;height:12px;border-radius:4px;flex:none}
+.dl b{margin-left:auto;font-size:16px}
+.dl small{color:var(--muted);font-size:12px}
+
+/* tahapan */
+.steps{list-style:none;margin:0;padding:0;position:relative}
+.steps li{display:grid;grid-template-columns:34px 1fr auto;gap:12px;padding:10px 0;position:relative}
+.steps li::before{content:"";position:absolute;left:16px;top:42px;bottom:-10px;width:2px;background:var(--line)}
+.steps li:last-child::before{display:none}
+.dot{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:13px;background:var(--soft);color:var(--muted);position:relative;z-index:1}
+.dot.done{background:var(--tosca-600);color:#fff}
+.dot.run{background:var(--warn);color:#3A2A00}
+.steps h3{margin:5px 0 2px;font-size:14.5px;font-weight:700;line-height:1.35}
+.steps p{margin:0;font-size:12.5px;color:var(--muted)}
+.kv{display:grid;gap:10px}
+.kv div{display:flex;justify-content:space-between;gap:10px;font-size:14px;padding-bottom:8px;border-bottom:1px solid var(--soft)}
+.kv b{font-weight:800}
+.mini-h{font-size:14px;font-weight:700;margin:18px 0 10px}
+
+.note{font-size:13px;color:var(--muted);margin-top:4px}
+footer{font-size:12.5px;color:var(--muted);padding:0 0 30px}
+
+/* tooltip, dialog, toast */
+.tip{position:fixed;z-index:50;pointer-events:none;background:var(--ink);color:var(--bg);padding:8px 10px;border-radius:8px;font-size:12.5px;max-width:280px;line-height:1.4;opacity:0;transition:opacity .1s}
+.tip.on{opacity:1}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--tosca-900);color:#fff;padding:11px 16px;border-radius:10px;font-size:14px;z-index:60;max-width:calc(100% - 32px);box-shadow:0 6px 24px rgba(0,0,0,.2);display:none}
+.toast.on{display:block}
+.toast.err{background:#9B2C24}
+.modal{position:fixed;inset:0;background:rgba(4,30,28,.55);display:none;align-items:center;justify-content:center;z-index:70;padding:20px}
+.modal.on{display:flex}
+.dlg{background:var(--panel);color:var(--ink);border-radius:16px;max-width:480px;width:100%;padding:22px;border:1px solid var(--line)}
+.dlg h3{margin:0 0 8px;font-size:18px}
+.dlg p{margin:0 0 12px;font-size:14px;color:var(--muted)}
+.dlg ul{margin:0 0 16px;padding-left:18px;font-size:14px}
+.dlg .row{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.b2{border:1px solid var(--line);background:var(--panel);padding:9px 14px;border-radius:10px;font-weight:600;cursor:pointer}
+.b2.go{background:var(--tosca-600);border-color:var(--tosca-600);color:#fff}
+
+@media (max-width:980px){
+  .rail{grid-template-columns:repeat(3,1fr)}
+  .stat:nth-child(4){border-left:0}
+  .stat:nth-child(n+4){border-top:1px solid var(--line)}
+  .grid2{grid-template-columns:1fr}
+  .hero{grid-template-columns:1fr;gap:18px}
+}
+@media (max-width:560px){
+  .wrap{padding:0 14px}
+  .rail{grid-template-columns:repeat(2,1fr)}
+  .stat{border-left:0!important;border-top:1px solid var(--line)}
+  .stat:nth-child(odd){border-right:1px solid var(--line)}
+  .stat:nth-child(-n+2){border-top:0}
+  .sync{margin-left:0;width:100%}
+  .sec{padding:16px}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="band">
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <h1>Dashboard Penyusunan Indikator Kinerja Utama</h1>
+        <p>Bidang Pengawas Pasar Modal, Keuangan Derivatif dan Bursa Karbon</p>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="btnImport" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+          Impor Excel
+        </button>
+        <button class="btn" id="btnExport" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V9"/><path d="m7 14 5-5 5 5"/><path d="M5 3h14"/></svg>
+          Ekspor Excel
+        </button>
+        <button class="btn" id="btnLogin" type="button" title="Login untuk mengubah data bersama">Login</button>
+        <button class="btn" id="btnChangePassword" type="button" title="Ubah password petugas" aria-label="Ubah password petugas" hidden style="padding:8px 10px;min-width:0">⚙</button>
+        <input type="file" id="fileInput" accept=".xlsx,.xlsm,.xls" hidden>
+      </div>
+    </div>
+    <div class="period">
+      <label for="selYear">Tahun</label>
+      <select class="sel" id="selYear"></select>
+      <div class="seg" id="segTw" role="group" aria-label="Triwulan"></div>
+      <span class="sync" id="syncInfo"></span>
+    </div>
+    <div class="hero">
+      <div>
+        <div class="avg-label">Rata-rata capaian IKU</div>
+        <div class="avg-num" id="avgNum">–</div>
+        <div class="avg-sub" id="avgSub"></div>
+      </div>
+      <div>
+        <div class="strip-head">
+          <h2 id="stripTitle">Status setiap IKU</h2>
+          <div class="legend">
+            <span><i style="background:#3FBFB2"></i>Tercapai</span>
+            <span><i style="background:#F2C14E"></i>Hampir tercapai</span>
+            <span><i style="background:#F08A80"></i>Belum tercapai</span>
+            <span><i style="background:rgba(233,251,248,.3)"></i>Belum ada realisasi</span>
+          </div>
+        </div>
+        <div class="strip" id="strip"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="rail" id="rail"></div>
+</div>
+
+<main class="wrap">
+  <section class="sec" id="secIku">
+    <div class="sec-h">
+      <div>
+        <h2>Capaian setiap IKU</h2>
+        <p id="ikuSub"></p>
+      </div>
+      <div class="filters">
+        <input class="field" id="q" type="search" placeholder="Cari kode atau nama IKU" aria-label="Cari IKU">
+        <select class="field" id="fSatker" aria-label="Filter satuan kerja"></select>
+      </div>
+    </div>
+    <div class="filters" id="fKat" style="margin-bottom:10px"></div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Kode</th><th>Indikator kinerja utama</th><th>Sifat kinerja</th><th class="num">Target</th><th class="num">Realisasi</th><th>Capaian</th><th>Kategori</th></tr></thead>
+        <tbody id="ikuBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="grid2 row-gap">
+    <section class="sec">
+      <div class="sec-h"><div><h2>Capaian per satuan kerja</h2><p>Jumlah IKU per kategori dan rata-rata capaiannya</p></div></div>
+      <div class="grp" id="satker"></div>
+    </section>
+    <section class="sec sas">
+      <div class="sec-h"><div><h2>Capaian per sasaran strategis</h2><p>Jumlah IKU per kategori dan rata-rata capaiannya</p></div></div>
+      <div class="grp" id="sasaran"></div>
+    </section>
+  </div>
+
+  <div class="grid2 row-gap">
+    <section class="sec">
+      <div class="sec-h"><div><h2>Sebaran kategori capaian</h2><p id="katSub"></p></div></div>
+      <div class="donut-wrap" id="donut"></div>
+    </section>
+    <section class="sec">
+      <div class="sec-h"><div><h2>Tren per triwulan</h2><p id="trenSub"></p></div></div>
+      <div class="chart-box" id="tren"></div>
+    </section>
+  </div>
+
+  <div class="grid2 row-gap">
+    <section class="sec">
+      <div class="sec-h"><div><h2>Progres tahapan penyusunan IKU</h2><p id="tahapSub"></p></div></div>
+      <ol class="steps" id="steps"></ol>
+    </section>
+    <section class="sec">
+      <div class="sec-h"><div><h2>Kelengkapan penyusunan</h2><p>Kualitas dan status dokumen IKU</p></div></div>
+      <div class="kv" id="kelengkapan"></div>
+      <div class="mini-h">IKU per sifat kinerja</div>
+      <div class="grp" id="sifat" style="grid-template-columns:minmax(140px,auto) 1fr 40px"></div>
+    </section>
+  </div>
+
+  <p class="note">IKU dengan realisasi 0 dihitung sebagai capaian 0%. Kosongkan sel realisasi bila data belum tersedia agar tercatat sebagai belum ada realisasi.</p>
+</main>
+<footer class="wrap" id="foot"></footer>
+
+<div class="tip" id="tip" role="tooltip"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
+  <div class="dlg">
+    <h3 id="dlgTitle">Data siap diterapkan</h3>
+    <p id="dlgFile"></p>
+    <ul id="dlgList"></ul>
+    <p id="dlgHint"></p>
+    <div class="row">
+      <button class="b2" id="dlgCancel" type="button">Batal</button>
+      <button class="b2" id="dlgLocal" type="button">Lihat di perangkat ini saja</button>
+      <button class="b2 go" id="dlgShare" type="button">Terapkan untuk semua</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- Firebase compat SDK agar dashboard HTML lama tetap dapat menggunakan fungsi non-module -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+(function(){
+"use strict";
+const SEED = {"master":[{"kode":"IKU-01","satker":"DPLE","sasaran":"Memperkuat Stabilitas Sektor Jasa Keuangan","nama":"Persentase Perusahaan Efek Anggota Bursa (PE AB) yang Memenuhi Persyaratan MKBD Melebihi Persyaratan Minimal dalam Ketentuan","sifat":"Outcome","satuan":"Persentase","polar":"Maximize","baseline":0.85,"targets":{"2026":0.88,"2027":0.88},"periode":"Triwulanan","smart":["Ya","Ya","Ya","Ya","Ya"],"manual":"Ya","status":"Ditetapkan","catatan":null},{"kode":"IKU-02","satker":"DPPM, DPZP, DPVR, DPLE, DNEK, DPEP, DPTP","sasaran":"Memperkuat Stabilitas Sektor Jasa Keuangan","nama":"Tingkat Kepuasan Stakeholder terhadap Kinerja Satuan Kerja","sifat":"Impact","satuan":"Indeks","polar":"Maximize","baseline":4.5,"targets":{"2026":4.8,"2027":5.1},"periode":"Tahunan","smart":["Ya","Ya","Ya","Ya","Ya"],"manual":"Ya","status":"Ditetapkan","catatan":null},{"kode":"IKU-03","satker":"DNEK","sasaran":"Mewujudkan Pendalaman Pasar","nama":"Presentase Emiten yang mampu mempertahankan saham free float sesuai dengan persyaratan pencatatan saham di pasar perdana","sifat":"Impact","satuan":"Persentase","polar":"Maximize","baseline":0.65,"targets":{"2026":0.8,"2027":"-"},"periode":"Triwulanan","smart":["Ya","Ya","Ya","Ya","Ya"],"manual":"Ya","status":"Ditetapkan","catatan":null},{"kode":"IKU-04","satker":"DPEP","sasaran":"Mewujudkan Pendalaman Pasar","nama":"Persentase jumlah perusahaan terbuka tercatat di Bursa Efek Indonesia yang memenuhi ketentuan free float di pasar sekunder","sifat":"Outcome","satuan":"Persentase","polar":"Maximize","baseline":0.65,"targets":{"2026":0.8,"2027":0.58},"periode":"Triwulanan","smart":["Ya","Ya","Ya","Ya","Ya"],"manual":"Ya","status":"Ditetapkan","catatan":null},{"kode":"IKU-05","satker":"DPPM, DPLE","sasaran":"Mewujudkan Pendalaman Pasar","nama":"Kebijakan Baru Free Float","sifat":"Impact","satuan":"Persentase","polar":"Maximize","baseline":"-","targets":{"2026":1,"2027":"-"},"periode":"Triwulanan","smart":["Ya","Ya","Ya","Ya","Ya"],"manual":"Ya","status":"Ditetapkan","catatan":null},{"kode":"IKU-06","satker":"DPZP, DPVR","sasaran":"Mewujudkan Pendalaman Pasar","nama":"Rasio Asset Under Management (AUM) per PDB","sifat":"Impact","satuan":"Persentase","polar":"Maximize","baseline":"-","targets":{"2026":0.0435,"2027":0.0435},"periode":"Tahunan","smart":["Ya","Ya","Ya","Ya","Ya"],"manual":"Ya","status":"Ditetapkan","catatan":null},{"kode":"IKU-07","satker":"DPZP, DPLE, DNEK, DPEP","sasaran":"Mewujudkan Pendalaman Pasar","nama":"Kontribusi Pasar Modal Terhadap Produk Domestik Bruto Indonesia","sifat":"Impact","satuan":"Persentase","polar":"Maximize","baseline":"-","targets":{"2026":0.55,"2027":0.6402},"periode":"Tahunan","smart":["Ya","Ya","Ya","Ya","Ya"],"manual":"Ya","status":"Ditetapkan","catatan":null},{"kode":"IKU-08","satker":"DPPM, DPLE","sasaran":"Mewujudkan Pendalaman Pasar","nama":"Penambahan Jumlah SID Baru","sifat":"Impact","satuan":"Jumlah","polar":"Maximize","baseline":2000000,"targets":{"2026":12000000,"2027":12000000},"periode":"Triwulanan","smart":["Ya","Ya","Ya","Ya","Ya"],"manual":"Ya","status":"Ditetapkan","catatan":null},{"kode":"IKU-09","satker":"DNEK","sasaran":"Mewujudkan Pendalaman Pasar","nama":"Jumlah Perusahaan yang berdomisili di daerah yang melakukan penawaran umum","sifat":"Outcome","satuan":"Besaran (angka)","polar":"Maximize","baseline":16,"targets":{"2026":16,"2027":18},"periode":"Triwulanan","smart":["Ya","Ya","Ya","Ya","Ya"],"manual":"Ya","status":"Ditetapkan","catatan":null},{"kode":"IKU-10","satker":"DPTP","sasaran":"Mewujudkan Pendalaman Pasar","nama":"Penambahan Pengguna Jasa Baru Bursa Karbon","sifat":"Impact","satuan":"Besaran (angka)","polar":"Maximize","baseline":25,"targets":{"2026":56,"2027":57},"periode":"Triwulanan","smart":["Ya","Ya","Ya","Ya","Ya"],"manual":"Ya","status":"Ditetapkan","catatan":null},{"kode":"IKU-11","satker":"DPPM","sasaran":"Memperkuat Pengaturan, Pengawasan, dan Penegakan Hukum yang Terintegrasi di Pasar Modal","nama":"Tingkat penyelesaian Peraturan Otoritas Jasa Keuangan mengenai Perdagangan Karbon Melalui Bursa Karbon","sifat":"Outcome","satuan":"Persentase","polar":"Optimize","baseline":1,"targets":{"2026":1,"2027":1},"periode":"Triwulanan","smart":["Ya","Ya","Ya","Ya","Ya"],"manual":"Ya","status":"Ditetapkan","catatan":null},{"kode":"IKU-12","satker":"DPVR","sasaran":"Memperkuat Pengaturan, Pengawasan, dan Penegakan Hukum yang Terintegrasi di Pasar Modal","nama":"Tingkat penyelesaian tindak lanjut rekomendasi hasil pengawasan/ pemeriksaan Manajer Investasi (MI)","sifat":"Outcome","satuan":"Persentase","polar":"Maximize","baseline":1,"targets":{"2026":1,"2027":1},"periode":"Triwulanan","smart":["Ya","Ya","Ya","Ya","Ya"],"manual":"Ya","status":"Ditetapkan","catatan":null},{"kode":"IKU-13","satker":"DPVR","sasaran":"Memperkuat Pengaturan, Pengawasan, dan Penegakan Hukum yang Terintegrasi di Pasar Modal","nama":"Tingkat penyelesaian rekomendasi tindak lanjut hasil pemeriksaan APU PPT dan PPPSPM manajer Investasi","sifat":"Outcome","satuan":"Persentase","polar":"Optimize","baseline":1,"targets":{"2026":1,"2027":1},"periode":"Triwulanan","smart":["Ya","Ya","Ya","Ya","Ya"],"manual":"Ya","status":"Ditetapkan","catatan":null},{"kode":"IKU-14","satker":"DPLE","sasaran":"Memperkuat Pengaturan, Pengawasan, dan Penegakan Hukum yang Terintegrasi di Pasar Modal","nama":"Tingkat penyelesaian rekomendasi tindak lanjut hasil pemeriksaan APU PPT di Lembaga Efek (Perusahaan Efek dan Bank Kustodian)","sifat":"Outcome","satuan":"Persentase","polar":"Optimize","baseline":1,"targets":{"2026":1,"2027":1},"periode":"Triwulanan","smart":["Ya","Ya","Ya","Ya","Ya"],"manual":"Ya","status":"Ditetapkan","catatan":null},{"kode":"IKU-15","satker":"DPLE","sasaran":"Memperkuat Pengaturan, Pengawasan, dan Penegakan Hukum yang Terintegrasi di Pasar Modal","nama":"Tingkat penyelesaian tindak lanjut rekomendasi hasil pengawasan/pemeriksaan Perusahaan Efek","sifat":"Outcome","satuan":"Persentase","polar":"Optimize","baseline":1,"targets":{"2026":1,"2027":1},"periode":"Triwulanan","smart":["Ya","Ya","Ya","Ya","Ya"],"manual":"Ya","status":"Ditetapkan","catatan":null},{"kode":"IKU-16","satker":"DPEP","sasaran":"Memperkuat Pengaturan, Pengawasan, dan Penegakan Hukum yang Terintegrasi di Pasar Modal","nama":"Tingkat Pemenuhan Jumlah Action Plan Perintah Tindakan Tertentu oleh Emiten dan Perusahaan Publik","sifat":"Outcome","satuan":"Persentase","polar":"Maximize","baseline":0.94,"targets":{"2026":0.94,"2027":0.94},"periode":"Triwulanan","smart":["Ya","Ya","Ya","Ya","Ya"],"manual":"Ya","status":"Ditetapkan","catatan":null},{"kode":"IKU-17","satker":"DPTP","sasaran":"Memperkuat Pengaturan, Pengawasan, dan Penegakan Hukum yang Terintegrasi di Pasar Modal","nama":"Tingkat Penyelesaian Penanganan Kasus Dugaan Tindak Pidana Pasar Modal","sifat":"Outcome","satuan":"Persentase","polar":"Maximize","baseline":"-","targets":{"2026":0.5,"2027":0.51},"periode":"Triwulanan","smart":["Ya","Ya","Ya","Ya","Ya"],"manual":"Ya","status":"Ditetapkan","catatan":null},{"kode":"IKU-18","satker":"DPZP","sasaran":"Meningkatkan kualitas pelayanan secara terintegrasi dan transparan di Pasar Modal","nama":"Penyelesaian permohonan Izin baru Wakil Penjamin Emisi Efek, Wakil Perantara Pedagang efek (WPPE), WPPE Pemasaran, WPPE Pemasaran Terbatas, wakil Manajer Investasi dan Wakil Agen Penjual Efek Reksa Dana","sifat":"Outcome","satuan":"Persentase","polar":"Maximize","baseline":"-","targets":{"2026":0.7,"2027":0.8},"periode":"Triwulanan","smart":["Ya","Ya","Ya","Ya","Ya"],"manual":"Ya","status":"Ditetapkan","catatan":null},{"kode":"IKU-19","satker":"DPZP","sasaran":"Meningkatkan kualitas pelayanan secara terintegrasi dan transparan di Pasar Modal","nama":"Pilot Project Implementasi Produk Invetasi baru","sifat":"Outcome","satuan":"Besaran (angka)","polar":"Maximize","baseline":"-","targets":{"2026":3,"2027":7},"periode":"Triwulanan","smart":["Ya","Ya","Ya","Ya","Ya"],"manual":"Ya","status":"Ditetapkan","catatan":null},{"kode":"IKU-20","satker":"DPPM, DPTP","sasaran":"Mengoptimalkan sistem informasi yang mendukung tugas dan fungsi Pasar Modal","nama":"Tingkat Penyelesaian Pengembangan Sistem Informasi Pasar Modal - SIPM Modul Pengawasan Keuangan Derivatif","sifat":"Outcome","satuan":"Persentase","polar":"Maximize","baseline":1,"targets":{"2026":1,"2027":1},"periode":"Triwulanan","smart":["Ya","Ya","Ya","Ya","Ya"],"manual":"Ya","status":"Ditetapkan","catatan":null}],"realisasi":[{"kode":"IKU-01","tahun":"2026","tw":"TW I","real":0.9205,"ket":null},{"kode":"IKU-01","tahun":"2026","tw":"TW II","real":0.9213,"ket":null},{"kode":"IKU-01","tahun":"2026","tw":"TW III","real":0.9438,"ket":null},{"kode":"IKU-02","tahun":"2026","tw":"TW I","real":0,"ket":null},{"kode":"IKU-02","tahun":"2026","tw":"TW II","real":0,"ket":null},{"kode":"IKU-02","tahun":"2026","tw":"TW III","real":0,"ket":null},{"kode":"IKU-03","tahun":"2026","tw":"TW I","real":0.7692,"ket":null},{"kode":"IKU-03","tahun":"2026","tw":"TW II","real":0.7037,"ket":null},{"kode":"IKU-03","tahun":"2026","tw":"TW III","real":0.7037,"ket":null},{"kode":"IKU-04","tahun":"2026","tw":"TW I","real":0.9111,"ket":null},{"kode":"IKU-04","tahun":"2026","tw":"TW II","real":0.9007,"ket":null},{"kode":"IKU-04","tahun":"2026","tw":"TW III","real":0.9007,"ket":null},{"kode":"IKU-05","tahun":"2026","tw":"TW I","real":0.5,"ket":null},{"kode":"IKU-05","tahun":"2026","tw":"TW II","real":0.75,"ket":null},{"kode":"IKU-05","tahun":"2026","tw":"TW III","real":0.75,"ket":null},{"kode":"IKU-06","tahun":"2026","tw":"TW I","real":0.0438,"ket":null},{"kode":"IKU-06","tahun":"2026","tw":"TW II","real":0.0438,"ket":null},{"kode":"IKU-06","tahun":"2026","tw":"TW III","real":0,"ket":null},{"kode":"IKU-07","tahun":"2026","tw":"TW I","real":0,"ket":null},{"kode":"IKU-07","tahun":"2026","tw":"TW II","real":0,"ket":null},{"kode":"IKU-07","tahun":"2026","tw":"TW III","real":0,"ket":null},{"kode":"IKU-08","tahun":"2026","tw":"TW I","real":4397074,"ket":null},{"kode":"IKU-08","tahun":"2026","tw":"TW II","real":8613997,"ket":null},{"kode":"IKU-08","tahun":"2026","tw":"TW III","real":11819346,"ket":null},{"kode":"IKU-09","tahun":"2026","tw":"TW I","real":0,"ket":null},{"kode":"IKU-09","tahun":"2026","tw":"TW II","real":5,"ket":null},{"kode":"IKU-09","tahun":"2026","tw":"TW III","real":6,"ket":null},{"kode":"IKU-10","tahun":"2026","tw":"TW I","real":3,"ket":null},{"kode":"IKU-10","tahun":"2026","tw":"TW II","real":5,"ket":null},{"kode":"IKU-10","tahun":"2026","tw":"TW III","real":9,"ket":null},{"kode":"IKU-11","tahun":"2026","tw":"TW I","real":0.4,"ket":null},{"kode":"IKU-11","tahun":"2026","tw":"TW II","real":0.98,"ket":null},{"kode":"IKU-11","tahun":"2026","tw":"TW III","real":1,"ket":null},{"kode":"IKU-12","tahun":"2026","tw":"TW I","real":0,"ket":null},{"kode":"IKU-12","tahun":"2026","tw":"TW II","real":0,"ket":null},{"kode":"IKU-12","tahun":"2026","tw":"TW III","real":1,"ket":null},{"kode":"IKU-13","tahun":"2026","tw":"TW I","real":1,"ket":null},{"kode":"IKU-13","tahun":"2026","tw":"TW II","real":1,"ket":null},{"kode":"IKU-13","tahun":"2026","tw":"TW III","real":1,"ket":null},{"kode":"IKU-14","tahun":"2026","tw":"TW I","real":1,"ket":null},{"kode":"IKU-14","tahun":"2026","tw":"TW II","real":1,"ket":null},{"kode":"IKU-14","tahun":"2026","tw":"TW III","real":1,"ket":null},{"kode":"IKU-15","tahun":"2026","tw":"TW I","real":1,"ket":null},{"kode":"IKU-15","tahun":"2026","tw":"TW II","real":1,"ket":null},{"kode":"IKU-15","tahun":"2026","tw":"TW III","real":1,"ket":null},{"kode":"IKU-16","tahun":"2026","tw":"TW I","real":0,"ket":null},{"kode":"IKU-16","tahun":"2026","tw":"TW II","real":1,"ket":null},{"kode":"IKU-16","tahun":"2026","tw":"TW III","real":0.8333,"ket":null},{"kode":"IKU-17","tahun":"2026","tw":"TW I","real":0.4167,"ket":null},{"kode":"IKU-17","tahun":"2026","tw":"TW II","real":0.0714,"ket":null},{"kode":"IKU-17","tahun":"2026","tw":"TW III","real":0.1052,"ket":null},{"kode":"IKU-18","tahun":"2026","tw":"TW I","real":0.83,"ket":null},{"kode":"IKU-18","tahun":"2026","tw":"TW II","real":0.9851,"ket":null},{"kode":"IKU-18","tahun":"2026","tw":"TW III","real":0.9864,"ket":null},{"kode":"IKU-19","tahun":"2026","tw":"TW I","real":0,"ket":null},{"kode":"IKU-19","tahun":"2026","tw":"TW II","real":0,"ket":null},{"kode":"IKU-19","tahun":"2026","tw":"TW III","real":7,"ket":null},{"kode":"IKU-20","tahun":"2026","tw":"TW I","real":0.3,"ket":null},{"kode":"IKU-20","tahun":"2026","tw":"TW II","real":0.75,"ket":null},{"kode":"IKU-20","tahun":"2026","tw":"TW III","real":0.95,"ket":null}],"tahapan":[{"no":1,"tahapan":"Penyusunan Program Kerja dan Target Akhir Tahun","uraian":"Menyusun program kerja baru yang strategis beserta target akhir tahun","status":"Selesai","pelaksanaan":"Juni 2025","pic":"MIA Satuan Kerja","ket":null},{"no":2,"tahapan":"Identifikasi IKU dan Penyusunan Manual IKU","uraian":"Melakukan identifikasi program kerja strategis yang dapat diusulkan menjadi IKU OJK dan IKU Satuan Kerja","status":"Selesai","pelaksanaan":"November 2025","pic":"MIA Satuan Kerja","ket":null},{"no":3,"tahapan":"Penyusunan Peta Strategi","uraian":"Menyusun Peta Strategi Satuan Kerja dan Bidang PMDK dari IKU yang sudah diusulkan","status":"Selesai","pelaksanaan":"Desember 2025","pic":"MIA Satuan Kerja dan MIA Bidang","ket":null},{"no":4,"tahapan":"Penyusunan Rasio Koefisien Kinerja","uraian":"Menilai dan menghitung kualitas serta sifat kinerja IKU yang diusulkan untuk menghasilkan rasio IKU Satuan Kerja","status":"Selesai","pelaksanaan":"Desember 2025","pic":"MIA Satuan Kerja dan MIA Bidang","ket":null},{"no":5,"tahapan":"Diskusi dan Koordinasi dengan Eksternal Satuan Kerja","uraian":"Melakukan diskusi, benchmarking dan koordinasi dengan Satuan Kerja lain di Bidang PMDK dan Bidang lain terkait IKU sejenis yang diampu masing-masing Bidang","status":"Selesai","pelaksanaan":"Desember 2025","pic":"MIA Satuan Kerja dan MIA Bidang","ket":null},{"no":6,"tahapan":"Pembahasan dan Persetujuan Pimpinan Satuan Kerja","uraian":"Meminta persetujuan Pimpinan Satuan Kerja atas usulan IKU OJK dan IKU Satuan Kerja","status":"Selesai","pelaksanaan":"Januari 2026","pic":"MIA Satuan Kerja","ket":null},{"no":7,"tahapan":"Persetujuan Deputi Komisioner dan KE-PMDK","uraian":"Meminta persetujuan Deputi Komisioner atas seluruh IKU yang diampu Satuan Kerja di bawah pengawasannya","status":"Selesai","pelaksanaan":"Januari 2026","pic":"MIA Bidang","ket":null},{"no":8,"tahapan":"Penyampaian ke Departemen Perencanaan Strategis dan Keuangan","uraian":"Menyampaikan Peta Strategi Bidang PMDK beserta manual IKU dan perhitungan RKK untuk dikompilasi dengan Bidang lain","status":"Selesai","pelaksanaan":"Februari 2026","pic":"MIA Bidang","ket":null},{"no":9,"tahapan":"Persetujuan dan Penetapan Anggota Dewan Komisioner","uraian":"Dewan Komisioner menandatangani usulan Peta Strategi Satuan Kerja melalui penetapan kesepakatan kinerja ","status":"Selesai","pelaksanaan":"Februari 2026","pic":"MIA Bidang","ket":null}],"ref":{"satker":["DPPM","DPZP","DPVR","DPLE","DNEK","DPEP","DPTP","SELURUH SATKER"],"sifat":["Impact","Outcome","Intermediate Outcome","Immediate Outcome","Output"],"tw":["TW I","TW II","TW III","TW IV"],"tahun":["2026","2027","2028","2029"],"L":[1,0.9],"sasaran":["Memperkuat Stabilitas Sektor Jasa Keuangan","Mewujudkan Pendalaman Pasar","Memperkuat Pengaturan, Pengawasan, dan Penegakan Hukum yang Terintegrasi di Pasar Modal","Meningkatkan kualitas pelayanan secara terintegrasi dan transparan di Pasar Modal","Mengoptimalkan sistem informasi yang mendukung tugas dan fungsi Pasar Modal"],"baselineLabel":"Baseline 2025"}};
+const KAT = ["Tercapai","Hampir tercapai","Belum tercapai","Belum ada realisasi"];
+const KCLS = {"Tercapai":"ok","Hampir tercapai":"warn","Belum tercapai":"bad","Belum ada realisasi":"none"};
+const $ = id => document.getElementById(id);
+const esc = v => String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const isNum = v => typeof v==="number" && isFinite(v);
+const pct = (v,d=1) => v==null||!isFinite(v) ? "–" : (v*100).toLocaleString("id-ID",{minimumFractionDigits:d,maximumFractionDigits:d})+"%";
+
+let DATA = SEED, SOURCE = {kind:"seed"};
+let state = {year:null, tw:null, q:"", satker:"", kat:""};
+let db=null, canWrite=false, downloads=null, pending=null, auth=null;
+
+try{ const s=JSON.parse(localStorage.getItem("iku-period")||"null"); if(s){state.year=s.year;state.tw=s.tw;} }catch(e){}
+
+/* ---------------- calculation (mirrors the workbook formulas) ---------------- */
+function capaian(real, target, polar){
+  if(real==null || real==="" || !isNum(target) || target===0) return null;
+  const r = Number(real); if(!isFinite(r)) return null;
+  let c = polar==="Minimize" ? 1+(target-r)/target : polar==="Optimize" ? 1-Math.abs(r-target)/target : r/target;
+  return Math.max(0, Math.min(1, c));
+}
+function kategori(c, L){ if(c==null) return null; return c>=L[0] ? "Tercapai" : c>=L[1] ? "Hampir tercapai" : "Belum tercapai"; }
+const avg = a => a.length ? a.reduce((s,x)=>s+x,0)/a.length : null;
+
+function compute(D, year, tw){
+  const L = D.ref.L && D.ref.L.length===2 ? D.ref.L : [1,0.9];
+  const mBy = {}; D.master.forEach(m=>{ if(!(m.kode in mBy)) mBy[m.kode]=m; });
+  const rows = D.realisasi.map(r=>{
+    const m = mBy[r.kode]; const target = m ? m.targets[r.tahun] : null;
+    const c = m ? capaian(r.real, target, m.polar) : null;
+    return Object.assign({}, r, {m, target, cap:c, kat:kategori(c,L)});
+  });
+  const inP = (r,t) => r.tahun===String(year) && r.tw===(t||tw);
+  const pRows = rows.filter(r=>inP(r));
+  const iku = D.master.map(m=>{
+    const r = pRows.find(x=>x.kode===m.kode);
+    const target = m.targets[String(year)];
+    const cap = r ? r.cap : null;
+    return {m, target:isNum(target)?target:null, real:r?r.real:null, cap, kat: cap==null ? "Belum ada realisasi" : r.kat};
+  });
+  const caps = pRows.filter(r=>r.cap!=null);
+  const cnt = k => pRows.filter(r=>r.kat===k).length;
+  const kat = {"Tercapai":cnt("Tercapai"),"Hampir tercapai":cnt("Hampir tercapai"),"Belum tercapai":cnt("Belum tercapai")};
+  kat["Belum ada realisasi"] = Math.max(0, D.master.length - kat["Tercapai"]-kat["Hampir tercapai"]-kat["Belum tercapai"]);
+  const group = (list, matchM, matchR) => list.map(g=>{
+    const rr = pRows.filter(r=>r.m && matchR(r,g));
+    const c = rr.filter(r=>r.cap!=null).map(r=>r.cap);
+    return {g, n:D.master.filter(m=>matchM(m,g)).length, avg:avg(c),
+      t:rr.filter(r=>r.kat==="Tercapai").length, h:rr.filter(r=>r.kat==="Hampir tercapai").length, b:rr.filter(r=>r.kat==="Belum tercapai").length};
+  });
+  const satkerList = (D.ref.satker||[]).filter(s=>s && s!=="SELURUH SATKER");
+  const sasList = [...(D.ref.sasaran||[])]; D.master.forEach(m=>{ if(m.sasaran && !sasList.includes(m.sasaran)) sasList.push(m.sasaran); });
+  const has = (str,code) => String(str||"").indexOf(code)>=0;
+  const tren = (D.ref.tw||[]).map(t=>{ const c=rows.filter(r=>inP(r,t)&&r.cap!=null).map(r=>r.cap); return {tw:t, avg:c.length?avg(c):0, n:c.length}; });
+  const tStat = s => D.tahapan.filter(t=>t.status===s).length;
+  const sifatList = [...(D.ref.sifat||[])]; D.master.forEach(m=>{ if(m.sifat && !sifatList.includes(m.sifat)) sifatList.push(m.sifat); });
+  return {
+    L, rows, iku, kat, avg: caps.length ? avg(caps.map(r=>r.cap)) : null, nCap:caps.length,
+    jumlah:D.master.length,
+    smart:D.master.filter(m=>m.smart.filter(x=>x==="Ya").length===5).length,
+    manual:D.master.filter(m=>m.manual==="Ya").length,
+    status:{Draf:D.master.filter(m=>m.status==="Draf").length, Reviu:D.master.filter(m=>m.status==="Reviu").length, Ditetapkan:D.master.filter(m=>m.status==="Ditetapkan").length},
+    satker: group(satkerList, (m,g)=>has(m.satker,g), (r,g)=>has(r.m.satker,g)),
+    sasaran: group(sasList, (m,g)=>m.sasaran===g, (r,g)=>r.m.sasaran===g),
+    tren, tahap:{done:tStat("Selesai"), run:tStat("Berjalan"), todo:tStat("Belum mulai"), total:D.tahapan.length},
+    sifat: sifatList.map(s=>({s, n:D.master.filter(m=>m.sifat===s).length}))
+  };
+}
+
+/* ---------------- formatting ---------------- */
+function fmtVal(v, satuan){
+  if(v==null || v==="") return "–";
+  if(!isNum(v)) return String(v);
+  if(satuan==="Persentase") return (v*100).toLocaleString("id-ID",{maximumFractionDigits:2})+"%";
+  return v.toLocaleString("id-ID",{maximumFractionDigits:satuan==="Indeks"?2:4});
+}
+const shortCode = k => { const m=String(k).match(/(\d+)\s*$/); return m?m[1]:String(k); };
+
+/* ---------------- rendering ---------------- */
+function years(){
+  const s = new Set((DATA.ref.tahun||[]).map(String));
+  DATA.master.forEach(m=>Object.keys(m.targets).forEach(y=>s.add(y)));
+  DATA.realisasi.forEach(r=>s.add(String(r.tahun)));
+  return [...s].filter(Boolean).sort();
+}
+function pickDefaultPeriod(){
+  const ys = years(), tws = DATA.ref.tw||["TW I","TW II","TW III","TW IV"];
+  if(!state.year || !ys.includes(state.year)){
+    const withData = DATA.realisasi.map(r=>String(r.tahun)).sort();
+    state.year = withData.length ? withData[withData.length-1] : ys[0];
+  }
+  if(!state.tw || !tws.includes(state.tw)){
+    const inYear = DATA.realisasi.filter(r=>String(r.tahun)===state.year).map(r=>tws.indexOf(r.tw)).filter(i=>i>=0);
+    state.tw = tws[inYear.length ? Math.max(...inYear) : 0];
+  }
+}
+function savePeriod(){ try{ localStorage.setItem("iku-period", JSON.stringify({year:state.year,tw:state.tw})); }catch(e){} }
+
+function renderControls(){
+  const ys = years();
+  $("selYear").innerHTML = ys.map(y=>`<option value="${esc(y)}"${y===state.year?" selected":""}>${esc(y)}</option>`).join("");
+  const tws = DATA.ref.tw||[];
+  $("segTw").innerHTML = tws.map(t=>`<button type="button" data-tw="${esc(t)}" aria-pressed="${t===state.tw}">${esc(t)}</button>`).join("");
+  const sk = (DATA.ref.satker||[]).filter(s=>s&&s!=="SELURUH SATKER");
+  $("fSatker").innerHTML = `<option value="">Semua satuan kerja</option>` + sk.map(s=>`<option value="${esc(s)}"${s===state.satker?" selected":""}>${esc(s)}</option>`).join("");
+}
+
+function render(){
+  const C = compute(DATA, state.year, state.tw);
+  const per = `${state.tw} ${state.year}`;
+
+  // hero
+  $("avgNum").innerHTML = C.avg==null ? "–" : `${esc((C.avg*100).toLocaleString("id-ID",{minimumFractionDigits:1,maximumFractionDigits:1}))}<small>%</small>`;
+  $("avgSub").textContent = C.avg==null ? `Belum ada realisasi pada ${per}` : `Periode ${per}, dari ${C.nCap} IKU yang sudah berdata`;
+  $("stripTitle").textContent = `Status ${C.jumlah} IKU pada ${per}`;
+  $("strip").innerHTML = C.iku.map((x,i)=>`<button type="button" class="tile k-${KCLS[x.kat]}" data-i="${i}" aria-label="${esc(x.m.kode)}: ${esc(x.kat)}"><b>${esc(shortCode(x.m.kode))}</b><span>${x.cap==null?"–":esc(pct(x.cap,0))}</span></button>`).join("");
+
+  // rail
+  const stats = [
+    ["Jumlah IKU", C.jumlah, `Ditetapkan ${C.status.Ditetapkan}`],
+    ["Lolos SMART", `${C.smart}<em> / ${C.jumlah}</em>`, "Skor 5 dari 5 kriteria"],
+    ["Manual IKU lengkap", `${C.manual}<em> / ${C.jumlah}</em>`, "Definisi, formula, sumber data"],
+    ["Tercapai", `${C.kat["Tercapai"]}<em> IKU</em>`, `Hampir ${C.kat["Hampir tercapai"]}, belum ${C.kat["Belum tercapai"]}`],
+    ["Belum ada realisasi", `${C.kat["Belum ada realisasi"]}<em> IKU</em>`, `Pada ${per}`],
+    ["Tahapan selesai", `${C.tahap.done}<em> / ${C.tahap.total}</em>`, `Berjalan ${C.tahap.run}`]
+  ];
+  $("rail").innerHTML = stats.map(s=>`<div class="stat"><div class="l">${s[0]}</div><div class="v">${s[1]}</div><div class="s">${esc(s[2])}</div></div>`).join("");
+
+  // IKU table
+  const q = state.q.trim().toLowerCase();
+  const list = C.iku.map((x,i)=>Object.assign({i},x)).filter(x=>
+    (!state.satker || String(x.m.satker||"").indexOf(state.satker)>=0) &&
+    (!state.kat || x.kat===state.kat) &&
+    (!q || (x.m.kode+" "+x.m.nama).toLowerCase().indexOf(q)>=0));
+  $("ikuSub").textContent = `${list.length} dari ${C.jumlah} IKU, periode ${per}`;
+  $("fKat").innerHTML = [["","Semua kategori"]].concat(KAT.map(k=>[k,k])).map(([v,l])=>{
+    const n = v ? C.iku.filter(x=>x.kat===v).length : C.jumlah;
+    return `<button type="button" class="chip" data-kat="${esc(v)}" aria-pressed="${state.kat===v}">${esc(l)} · ${n}</button>`;}).join("");
+  $("ikuBody").innerHTML = list.length ? list.map(x=>{
+    const k=KCLS[x.kat];
+    return `<tr id="row-${x.i}"><td class="kode">${esc(x.m.kode)}</td>
+      <td><div class="nm">${esc(x.m.nama)}<small>${esc(x.m.satker)} · ${esc(x.m.satuan||"")}</small></div></td>
+      <td><span class="sifat">${esc(x.m.sifat||"–")}</span></td>
+      <td class="num">${esc(fmtVal(x.target,x.m.satuan))}</td>
+      <td class="num">${esc(fmtVal(x.real,x.m.satuan))}</td>
+      <td><div class="cap"><div class="bar"><i class="c-${k}" style="width:${x.cap==null?0:(x.cap*100).toFixed(1)}%"></i></div><b>${esc(pct(x.cap))}</b></div></td>
+      <td><span class="pill p-${k}">${esc(x.kat)}</span></td></tr>`;}).join("")
+    : `<tr><td colspan="7" class="empty">Tidak ada IKU yang cocok dengan filter ini. Hapus pencarian atau pilih kategori lain.</td></tr>`;
+
+  // groups
+  const grpHTML = (arr, nameFn) => arr.map((x,idx)=>{
+    const tot = x.t+x.h+x.b;
+    const seg = (v,c,l) => v ? `<i class="c-${c}" style="width:${(v/Math.max(tot,1)*100).toFixed(2)}%" data-tip="${esc(l)}: ${v} IKU">${v}</i>` : "";
+    return (idx?`<div class="grp-sep"></div>`:"") + `<div class="g-name">${nameFn(x)}</div>
+      <div class="stack" aria-label="Tercapai ${x.t}, hampir ${x.h}, belum ${x.b}">${tot?seg(x.t,"ok","Tercapai")+seg(x.h,"warn","Hampir tercapai")+seg(x.b,"bad","Belum tercapai"):""}</div>
+      <div class="g-avg">${esc(pct(x.avg,0))}</div>`;}).join("");
+  $("satker").innerHTML = C.satker.length ? grpHTML(C.satker, x=>`${esc(x.g)}<small>${x.n} IKU</small>`) : `<div class="empty">Daftar satuan kerja kosong di sheet Ref.</div>`;
+  $("sasaran").innerHTML = grpHTML(C.sasaran, x=>`${esc(x.g)} <span style="color:var(--muted);font-weight:500">· ${x.n} IKU</span>`);
+
+  // donut
+  $("katSub").textContent = `Periode ${per}`;
+  const vals = KAT.map(k=>C.kat[k]), total = vals.reduce((a,b)=>a+b,0);
+  const cols = ["var(--ok)","var(--warn)","var(--bad)","var(--none)"];
+  let a0 = -Math.PI/2, arcs="";
+  const R=80, r=52, cx=90, cy=90;
+  vals.forEach((v,i)=>{
+    if(!v) return;
+    const a1 = a0 + v/total*Math.PI*2;
+    if(v===total){ arcs += `<circle cx="${cx}" cy="${cy}" r="${(R+r)/2}" fill="none" stroke="${cols[i]}" stroke-width="${R-r}" data-tip="${esc(KAT[i])}: ${v} IKU"/>`; }
+    else{
+      const large = a1-a0>Math.PI?1:0, p=(a,rr)=>`${(cx+rr*Math.cos(a)).toFixed(2)},${(cy+rr*Math.sin(a)).toFixed(2)}`;
+      arcs += `<path d="M${p(a0,R)} A${R},${R} 0 ${large} 1 ${p(a1,R)} L${p(a1,r)} A${r},${r} 0 ${large} 0 ${p(a0,r)} Z" fill="${cols[i]}" stroke="var(--panel)" stroke-width="2" data-tip="${esc(KAT[i])}: ${v} IKU"/>`;
+    }
+    a0=a1;
+  });
+  $("donut").innerHTML = `<svg viewBox="0 0 180 180" role="img" aria-label="Sebaran kategori capaian">${total?arcs:`<circle cx="90" cy="90" r="66" fill="none" stroke="var(--soft)" stroke-width="28"/>`}
+    <text x="90" y="88" text-anchor="middle" font-size="30" font-weight="800" fill="var(--ink)" font-family="inherit">${total}</text>
+    <text x="90" y="108" text-anchor="middle" font-size="12" fill="var(--muted)" font-family="inherit">IKU</text></svg>
+    <div class="dl">${KAT.map((k,i)=>`<div><i style="background:${cols[i]}"></i><span>${k}<br><small>${i===0?"≥ "+pct(C.L[0],0):i===1?pct(C.L[1],0)+" s.d. < "+pct(C.L[0],0):i===2?"< "+pct(C.L[1],0):"Belum ada data periode ini"}</small></span><b>${vals[i]}</b></div>`).join("")}</div>`;
+
+  // tren
+  $("trenSub").textContent = `Rata-rata capaian per triwulan, tahun ${state.year}`;
+  const W=560, H=230, pl=8, pr=8, pt=26, pb=44, n=C.tren.length||1, bw=(W-pl-pr)/n;
+  let bars = "";
+  [0,.5,1].forEach(g=>{ const y=pt+(1-g)*(H-pt-pb); bars+=`<line x1="${pl}" x2="${W-pr}" y1="${y}" y2="${y}" stroke="var(--line)" stroke-dasharray="${g?'3 4':''}"/>`; });
+  C.tren.forEach((t,i)=>{
+    const h=(H-pt-pb)*t.avg, x=pl+i*bw+bw*0.22, w=bw*0.56, y=H-pb-h, sel=t.tw===state.tw;
+    bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${Math.max(h,0).toFixed(1)}" rx="6" fill="${sel?"var(--tosca-600)":"var(--tosca-200)"}" data-tip="${esc(t.tw)}: ${esc(pct(t.avg))} dari ${t.n} IKU berdata"/>`;
+    bars += `<text x="${(x+w/2).toFixed(1)}" y="${(y-8).toFixed(1)}" text-anchor="middle" font-size="14" font-weight="800" fill="var(--ink)">${t.n?esc(pct(t.avg,0)):"–"}</text>`;
+    bars += `<text x="${(x+w/2).toFixed(1)}" y="${H-pb+20}" text-anchor="middle" font-size="13" font-weight="${sel?800:600}" fill="var(--ink)">${esc(t.tw)}</text>`;
+    bars += `<text x="${(x+w/2).toFixed(1)}" y="${H-pb+36}" text-anchor="middle" font-size="11.5" fill="var(--muted)">${t.n} IKU berdata</text>`;
+  });
+  $("tren").innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Tren capaian per triwulan" style="font-family:inherit">${bars}</svg>`;
+
+  // tahapan
+  $("tahapSub").textContent = `${C.tahap.done} dari ${C.tahap.total} tahapan selesai` + (C.tahap.run?`, ${C.tahap.run} berjalan`:"");
+  $("steps").innerHTML = DATA.tahapan.length ? DATA.tahapan.map((t,i)=>{
+    const st = t.status||"Belum diisi", cls = st==="Selesai"?"done":st==="Berjalan"?"run":"";
+    const pc = st==="Selesai"?"ok":st==="Berjalan"?"warn":"none";
+    return `<li><div class="dot ${cls}">${esc(t.no!=null?t.no:i+1)}</div><div><h3>${esc(t.tahapan)}</h3><p>${esc(t.pic||"")}${t.pic&&t.pelaksanaan?" · ":""}${esc(t.pelaksanaan||"")}</p></div><div><span class="pill p-${pc}">${esc(st)}</span></div></li>`;}).join("")
+    : `<li><div class="empty" style="grid-column:1/-1">Sheet Tahapan belum berisi data.</div></li>`;
+
+  $("kelengkapan").innerHTML = [
+    ["Jumlah IKU",C.jumlah],["Lolos SMART (skor 5)",C.smart],["Manual IKU lengkap",C.manual],
+    ["Status ditetapkan",C.status.Ditetapkan],["Status reviu",C.status.Reviu],["Status draf",C.status.Draf]
+  ].map(([l,v])=>`<div><span>${l}</span><b>${v}</b></div>`).join("");
+  const maxS = Math.max(1,...C.sifat.map(s=>s.n));
+  $("sifat").innerHTML = C.sifat.map(s=>`<div class="g-name" style="font-weight:600;font-size:13.5px">${esc(s.s)}</div><div class="bar" style="height:10px"><i style="width:${(s.n/maxS*100).toFixed(1)}%;background:var(--tosca-400)"></i></div><div class="g-avg" style="font-size:14px">${s.n}</div>`).join("");
+
+  // footer
+  $("foot").textContent = `Batas kategori: tercapai ≥ ${pct(C.L[0],0)}, hampir tercapai ≥ ${pct(C.L[1],0)}. Capaian dihitung dari realisasi dibanding target tahunan sesuai polarisasi (Maximize, Minimize, Optimize).`;
+  renderSync();
+}
+
+function renderSync(){
+  let t;
+  if(SOURCE.kind==="shared") t = `Data bersama: ${SOURCE.fileName||"impor Excel"}, diperbarui ${new Date(SOURCE.at).toLocaleString("id-ID",{dateStyle:"medium",timeStyle:"short"})}`;
+  else if(SOURCE.kind==="local") t = `Hanya di perangkat ini: ${SOURCE.fileName}`;
+  else t = "";
+  $("syncInfo").textContent = t;
+}
+
+/* ---------------- interactions ---------------- */
+$("selYear").addEventListener("change", e=>{ state.year=e.target.value; savePeriod(); renderControls(); render(); });
+$("segTw").addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b) return; state.tw=b.dataset.tw; savePeriod(); renderControls(); render(); });
+$("q").addEventListener("input", e=>{ state.q=e.target.value; render(); });
+$("fSatker").addEventListener("change", e=>{ state.satker=e.target.value; render(); });
+$("fKat").addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b) return; state.kat=b.dataset.kat; render(); });
+$("strip").addEventListener("click", e=>{
+  const b=e.target.closest(".tile"); if(!b) return;
+  state.q=""; state.satker=""; state.kat=""; $("q").value=""; $("fSatker").value=""; render();
+  const row=$("row-"+b.dataset.i); if(!row) return;
+  row.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth", block:"center"});
+  row.classList.add("flash"); setTimeout(()=>row.classList.remove("flash"),1600);
+});
+
+// tooltip
+const tip=$("tip");
+document.addEventListener("pointerover", e=>{
+  const t=e.target.closest("[data-tip], .tile");
+  if(!t){ tip.classList.remove("on"); return; }
+  if(t.classList.contains("tile")){
+    const C=compute(DATA,state.year,state.tw), x=C.iku[+t.dataset.i];
+    tip.textContent = `${x.m.kode} · ${x.m.nama} — ${x.kat}${x.cap!=null?" ("+pct(x.cap)+")":""}`;
+  } else tip.textContent = t.getAttribute("data-tip");
+  tip.classList.add("on");
+});
+document.addEventListener("pointermove", e=>{
+  if(!tip.classList.contains("on")) return;
+  const w=tip.offsetWidth, h=tip.offsetHeight;
+  let x=e.clientX+14, y=e.clientY+14;
+  if(x+w>innerWidth-8) x=e.clientX-w-14; if(y+h>innerHeight-8) y=e.clientY-h-14;
+  tip.style.left=Math.max(8,x)+"px"; tip.style.top=Math.max(8,y)+"px";
+});
+
+let toastT;
+function toast(msg, err){ const t=$("toast"); t.textContent=msg; t.className="toast on"+(err?" err":""); clearTimeout(toastT); toastT=setTimeout(()=>t.className="toast",4200); }
+
+/* ---------------- Excel import ---------------- */
+$("btnImport").addEventListener("click", ()=>{
+  if(typeof XLSX==="undefined"){ toast("Pustaka Excel belum termuat. Muat ulang halaman lalu coba lagi.", true); return; }
+  $("fileInput").value=""; $("fileInput").click();
+});
+$("fileInput").addEventListener("change", async e=>{
+  const f=e.target.files[0]; if(!f) return;
+  try{
+    const wb = XLSX.read(await f.arrayBuffer(), {type:"array"});
+    const parsed = parseWorkbook(wb);
+    pending = {data:parsed.data, fileName:f.name};
+    openDialog(f.name, parsed);
+  }catch(err){ toast(err.message||"File tidak bisa dibaca.", true); }
+});
+
+const norm = s => String(s==null?"":s).trim().toLowerCase().replace(/\s+/g," ");
+function sheetRows(wb, name){
+  const key = wb.SheetNames.find(n=>norm(n)===norm(name));
+  if(!key) return null;
+  return XLSX.utils.sheet_to_json(wb.Sheets[key], {header:1, raw:true, defval:null, blankrows:false});
+}
+function headerIndex(rows, mustHave){
+  for(let i=0;i<Math.min(rows.length,10);i++){ const h=(rows[i]||[]).map(norm); if(mustHave.every(m=>h.includes(norm(m)))) return i; }
+  return -1;
+}
+const numOrNull = v => { if(v==null||v==="") return null; if(typeof v==="number") return v; const s=String(v).trim(); if(s===""||s==="-"||s==="–") return null;
+  const n=Number(s.replace(/%$/,"").replace(",",".")); return isFinite(n) ? (s.endsWith("%")?n/100:n) : s; };
+const txt = v => v==null ? null : String(v).trim() || null;
+
+function parseWorkbook(wb){
+  const warn=[];
+  // Master_IKU
+  const mr = sheetRows(wb,"Master_IKU");
+  if(!mr) throw new Error("Sheet Master_IKU tidak ditemukan. Gunakan file dengan struktur yang sama seperti hasil Ekspor Excel.");
+  const mh = headerIndex(mr,["Kode IKU","Indikator Kinerja Utama"]);
+  if(mh<0) throw new Error("Judul kolom di sheet Master_IKU tidak dikenali. Baris judul harus memuat 'Kode IKU' dan 'Indikator Kinerja Utama'.");
+  const H = mr[mh].map(norm), col = n => H.indexOf(norm(n));
+  const tCols = H.map((h,i)=>{ const m=h.match(/^target (\d{4})$/); return m?[m[1],i]:null; }).filter(Boolean);
+  const bCol = H.findIndex(h=>/^baseline/.test(h));
+  const g = (r,n) => { const i=col(n); return i<0?null:r[i]; };
+  const master = mr.slice(mh+1).filter(r=>txt(r[col("Kode IKU")])).map(r=>({
+    kode:txt(g(r,"Kode IKU")), satker:txt(g(r,"Satuan Kerja")), sasaran:txt(g(r,"Sasaran Strategis")), nama:txt(g(r,"Indikator Kinerja Utama")),
+    sifat:txt(g(r,"Sifat Kinerja")), satuan:txt(g(r,"Satuan Pengukuran")), polar:txt(g(r,"Polarisasi"))||"Maximize",
+    baseline: bCol>=0 ? numOrNull(r[bCol]) : null,
+    targets:Object.fromEntries(tCols.map(([y,i])=>[y,numOrNull(r[i])])),
+    periode:txt(g(r,"Periode Pelaporan")),
+    smart:["Specific","Measurable","Achievable","Relevant","Time-bound"].map(n=>txt(g(r,n))),
+    manual:txt(g(r,"Manual IKU Lengkap")), status:txt(g(r,"Status")), catatan:txt(g(r,"Catatan"))
+  }));
+  if(!master.length) throw new Error("Sheet Master_IKU tidak berisi baris IKU.");
+  if(!tCols.length) warn.push("Kolom 'Target <tahun>' tidak ditemukan di Master_IKU, sehingga capaian tidak bisa dihitung.");
+
+  // Realisasi
+  const rr = sheetRows(wb,"Realisasi");
+  if(!rr) throw new Error("Sheet Realisasi tidak ditemukan.");
+  const rh = headerIndex(rr,["Kode IKU","Tahun","Triwulan","Realisasi"]);
+  if(rh<0) throw new Error("Judul kolom di sheet Realisasi harus memuat 'Kode IKU', 'Tahun', 'Triwulan' dan 'Realisasi'.");
+  const RH = rr[rh].map(norm), rc = n => RH.indexOf(norm(n));
+  const realisasi = rr.slice(rh+1).filter(r=>txt(r[rc("Kode IKU")])).map(r=>({
+    kode:txt(r[rc("Kode IKU")]), tahun:String(txt(r[rc("Tahun")])||""), tw:txt(r[rc("Triwulan")]),
+    real: (v=>typeof v==="string"?null:v)(numOrNull(r[rc("Realisasi")])), ket: rc("Keterangan")>=0 ? txt(r[rc("Keterangan")]) : null
+  }));
+  const kodes = new Set(master.map(m=>m.kode));
+  const unknown = realisasi.filter(r=>!kodes.has(r.kode)).length;
+  if(unknown) warn.push(`${unknown} baris realisasi memakai kode IKU yang tidak ada di Master_IKU dan akan diabaikan.`);
+
+  // Tahapan (optional)
+  let tahapan = DATA.tahapan;
+  const tr = sheetRows(wb,"Tahapan");
+  if(tr){ const th=headerIndex(tr,["Tahapan","Status"]);
+    if(th>=0){ const T=tr[th].map(norm), tc=n=>T.indexOf(norm(n)), gv=(r,n)=>tc(n)<0?null:r[tc(n)];
+      tahapan = tr.slice(th+1).filter(r=>txt(gv(r,"Tahapan"))).map(r=>({no:gv(r,"No"),tahapan:txt(gv(r,"Tahapan")),uraian:txt(gv(r,"Uraian")),status:txt(gv(r,"Status")),pelaksanaan:txt(gv(r,"Pelaksanaan")),pic:txt(gv(r,"PIC")),ket:txt(gv(r,"Keterangan"))})); }
+  } else warn.push("Sheet Tahapan tidak ada, data tahapan sebelumnya dipertahankan.");
+
+  // Ref (optional)
+  const ref = JSON.parse(JSON.stringify(DATA.ref));
+  const fr = sheetRows(wb,"Ref");
+  if(fr && fr.length){
+    const F=fr[0].map(norm), list = n => { const i=F.indexOf(norm(n)); return i<0?null:fr.slice(1).map(r=>txt(r[i])).filter(Boolean); };
+    ["satker:Satuan Kerja","sifat:Sifat Kinerja","tw:Triwulan","tahun:Tahun","sasaran:Sasaran Strategis"].forEach(p=>{ const [k,n]=p.split(":"); const v=list(n); if(v&&v.length) ref[k]=v.map(String); });
+    const ni=F.indexOf("nilai"); if(ni>=0){ const a=numOrNull(fr[1]&&fr[1][ni]), b=numOrNull(fr[2]&&fr[2][ni]); if(isNum(a)&&isNum(b)) ref.L=[a,b]; }
+  } else {
+    // derive lists from data when Ref is absent
+    const sk=new Set(); master.forEach(m=>String(m.satker||"").split(/[,;]/).map(s=>s.trim()).filter(Boolean).forEach(s=>sk.add(s)));
+    if(sk.size) ref.satker=[...sk];
+  }
+  return {data:{master, realisasi, tahapan, ref}, warn};
+}
+
+function openDialog(name, parsed){
+  const d=parsed.data;
+  $("dlgFile").textContent = name;
+  $("dlgList").innerHTML = [`${d.master.length} IKU di Master_IKU`,`${d.realisasi.length} baris realisasi`,`${d.tahapan.length} tahapan`].concat(parsed.warn).map(x=>`<li>${esc(x)}</li>`).join("");
+  const share = db && canWrite!==false;
+  $("dlgShare").hidden = !share;
+  $("dlgHint").textContent = share ? "Terapkan untuk semua mengganti data yang dilihat setiap orang yang membuka dashboard ini." :
+    "Anda bisa melihat data ini di perangkat sendiri. Untuk membagikannya ke semua orang, minta pemilik dashboard memberi Anda akses Contributor atau Editor.";
+  $("modal").classList.add("on"); (share?$("dlgShare"):$("dlgLocal")).focus();
+}
+const closeDialog = () => { $("modal").classList.remove("on"); pending=null; };
+$("dlgCancel").addEventListener("click", closeDialog);
+$("modal").addEventListener("click", e=>{ if(e.target===$("modal")) closeDialog(); });
+document.addEventListener("keydown", e=>{ if(e.key==="Escape" && $("modal").classList.contains("on")) closeDialog(); });
+$("dlgLocal").addEventListener("click", ()=>{
+  if(!pending) return; DATA=pending.data; SOURCE={kind:"local", fileName:pending.fileName};
+  closeDialog(); pickDefaultPeriod(); renderControls(); render(); toast("Data dari Excel ditampilkan di perangkat ini.");
+});
+$("dlgShare").addEventListener("click", async ()=>{
+  if(!pending || !db) return;
+  const p=pending; $("dlgShare").disabled=true;
+  try{
+    await db.doc("shared/workbook").set({json:JSON.stringify(p.data), fileName:p.fileName, at:Date.now()});
+    DATA=p.data; SOURCE={kind:"shared", fileName:p.fileName, at:Date.now()};
+    closeDialog(); pickDefaultPeriod(); renderControls(); render(); toast("Data diterapkan untuk semua orang.");
+  }catch(err){
+    if(err && err.code==="invalid_argument"){ canWrite=false; toast("Anda tidak punya izin mengubah data bersama. Data ditampilkan di perangkat ini saja.", true);
+      DATA=p.data; SOURCE={kind:"local", fileName:p.fileName}; closeDialog(); pickDefaultPeriod(); renderControls(); render(); }
+    else toast("Gagal menyimpan data bersama. Coba lagi sebentar lagi.", true);
+  }finally{ $("dlgShare").disabled=false; }
+});
+
+/* ---------------- Excel export ---------------- */
+$("btnExport").addEventListener("click", async ()=>{
+  if(typeof XLSX==="undefined"){ toast("Pustaka Excel belum termuat. Muat ulang halaman lalu coba lagi.", true); return; }
+  try{
+    const buf = buildWorkbook();
+    const blob = new Blob([buf], {type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `Dashboard_IKU_PMDK_${state.year}_${state.tw.replace(/\s+/g,"")}.xlsx`;
+    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    toast("File Excel diekspor.");
+  }catch(err){
+    if(err && err.code==="declined") return;
+    toast(err && err.code==="rate_limited" ? "Masih ada konfirmasi unduhan yang terbuka." : "Ekspor gagal. Coba lagi.", true);
+  }
+});
+
+function buildWorkbook(){
+  const C = compute(DATA, state.year, state.tw), per=`${state.tw} ${state.year}`;
+  const wb = XLSX.utils.book_new();
+  const n = v => v==null ? "" : v;
+  // Dashboard sheet (values)
+  const A = [];
+  A.push(["DASHBOARD PENYUSUNAN INDIKATOR KINERJA UTAMA"]);
+  A.push(["Bidang Pengawas Pasar Modal, Keuangan Derivatif dan Bursa Karbon"]);
+  A.push(["Periode", per]); A.push([]);
+  A.push(["Ringkasan","Nilai","Keterangan"]);
+  A.push(["Jumlah IKU",C.jumlah,`Ditetapkan: ${C.status.Ditetapkan}`]);
+  A.push(["Lolos SMART",C.smart,"Skor 5 dari 5 kriteria"]);
+  A.push(["Manual IKU lengkap",C.manual,"Definisi, formula, sumber data"]);
+  A.push(["Rata-rata capaian",C.avg==null?"":C.avg,`Periode ${per}`]);
+  A.push(["Tercapai",C.kat["Tercapai"],`Hampir ${C.kat["Hampir tercapai"]}, belum ${C.kat["Belum tercapai"]}`]);
+  A.push(["Belum ada realisasi",C.kat["Belum ada realisasi"],"Pada periode terpilih"]);
+  A.push(["Tahapan selesai",C.tahap.done,`dari ${C.tahap.total}, berjalan ${C.tahap.run}`]);
+  A.push([]);
+  const pctRows=[];
+  A.push(["CAPAIAN SETIAP IKU (PERIODE TERPILIH)"]);
+  A.push(["Kode","Indikator Kinerja Utama","Satuan Kerja","Sifat Kinerja","Target","Realisasi","Capaian","Kategori"]);
+  C.iku.forEach(x=>{ A.push([x.m.kode,x.m.nama,x.m.satker,n(x.m.sifat),n(x.target),n(x.real),x.cap==null?"":x.cap,x.kat]); pctRows.push(A.length-1); });
+  A.push([]);
+  A.push(["CAPAIAN PER SATUAN KERJA"]);
+  A.push(["Kode","Jumlah IKU","Capaian","Tercapai","Hampir","Belum"]);
+  C.satker.forEach(x=>{ A.push([x.g,x.n,x.avg==null?0:x.avg,x.t,x.h,x.b]); });
+  A.push([]);
+  A.push(["CAPAIAN PER SASARAN STRATEGIS"]);
+  A.push(["No","Sasaran Strategis","Jumlah IKU","Capaian","Tercapai","Hampir","Belum"]);
+  C.sasaran.forEach((x,i)=>A.push([i+1,x.g,x.n,x.avg==null?0:x.avg,x.t,x.h,x.b]));
+  A.push([]);
+  A.push(["SEBARAN KATEGORI CAPAIAN"]); A.push(["Kategori","Jumlah"]);
+  KAT.forEach(k=>A.push([k,C.kat[k]]));
+  A.push([]);
+  A.push(["TREN PER TRIWULAN"]); A.push(["Triwulan","Capaian","IKU berdata"]);
+  C.tren.forEach(t=>A.push([t.tw,t.avg,t.n]));
+  A.push([]);
+  A.push(["PROGRES TAHAPAN PENYUSUNAN IKU"]); A.push(["No","Tahapan","PIC","Pelaksanaan","Status"]);
+  DATA.tahapan.forEach(t=>A.push([n(t.no),t.tahapan,n(t.pic),n(t.pelaksanaan),t.status||"Belum diisi"]));
+  const ws = XLSX.utils.aoa_to_sheet(A);
+  // percent formats
+  const setFmt=(r,c,f)=>{ const a=XLSX.utils.encode_cell({r,c}); if(ws[a]&&typeof ws[a].v==="number") ws[a].z=f; };
+  setFmt(8,1,"0.0%");
+  pctRows.forEach(r=>setFmt(r,6,"0.0%"));
+  A.forEach((row,r)=>{ if(row[0]==="Kode" && row[1]==="Jumlah IKU"){ for(let i=r+1;i<A.length&&A[i].length;i++) setFmt(i,2,"0.0%"); }
+    if(row[1]==="Sasaran Strategis"){ for(let i=r+1;i<A.length&&A[i].length;i++) setFmt(i,3,"0.0%"); }
+    if(row[0]==="Triwulan"){ for(let i=r+1;i<A.length&&A[i].length;i++) setFmt(i,1,"0.0%"); } });
+  ws["!cols"]=[{wch:24},{wch:60},{wch:26},{wch:14},{wch:14},{wch:12},{wch:20}];
+  XLSX.utils.book_append_sheet(wb, ws, "Dashboard");
+
+  // Source sheets (re-importable)
+  const years = [...new Set(DATA.master.flatMap(m=>Object.keys(m.targets)))].sort();
+  const mh = ["Kode IKU","Satuan Kerja","Sasaran Strategis","Indikator Kinerja Utama","Sifat Kinerja","Satuan Pengukuran","Polarisasi",DATA.ref.baselineLabel||"Baseline"]
+    .concat(years.map(y=>"Target "+y)).concat(["Periode Pelaporan","Specific","Measurable","Achievable","Relevant","Time-bound","Skor SMART (0–5)","Manual IKU Lengkap","Status","Catatan"]);
+  const mrows = DATA.master.map(m=>[m.kode,m.satker,m.sasaran,m.nama,m.sifat,m.satuan,m.polar,m.baseline==null?"-":m.baseline]
+    .concat(years.map(y=>m.targets[y]==null?"-":m.targets[y])).concat([m.periode].concat(m.smart).concat([m.smart.filter(x=>x==="Ya").length,m.manual,m.status,m.catatan]).map(n)));
+  const ms = XLSX.utils.aoa_to_sheet([mh].concat(mrows)); ms["!cols"]=mh.map((h,i)=>({wch:i===3?60:i===2?40:14}));
+  XLSX.utils.book_append_sheet(wb, ms, "Master_IKU");
+
+  const rh=["Kode IKU","Tahun","Triwulan","Realisasi","Nama IKU","Satuan Kerja","Polaritas","Target Tahunan","Capaian","Kategori Capaian","Keterangan"];
+  const rs = XLSX.utils.aoa_to_sheet([rh].concat(C.rows.map(r=>[r.kode,r.tahun,r.tw,n(r.real),r.m?r.m.nama:"",r.m?r.m.satker:"",r.m?r.m.polar:"",n(r.target),r.cap==null?"":r.cap,r.kat||"",n(r.ket)])));
+  C.rows.forEach((r,i)=>{ const a=XLSX.utils.encode_cell({r:i+1,c:8}); if(rs[a]&&typeof rs[a].v==="number") rs[a].z="0.0%"; });
+  rs["!cols"]=rh.map((h,i)=>({wch:i===4?50:14}));
+  XLSX.utils.book_append_sheet(wb, rs, "Realisasi");
+
+  const th=["No","Tahapan","Uraian","Status","Pelaksanaan","PIC","Keterangan"];
+  const ts = XLSX.utils.aoa_to_sheet([th].concat(DATA.tahapan.map(t=>[n(t.no),n(t.tahapan),n(t.uraian),n(t.status),n(t.pelaksanaan),n(t.pic),n(t.ket)])));
+  ts["!cols"]=[{wch:5},{wch:48},{wch:60},{wch:12},{wch:16},{wch:28},{wch:20}];
+  XLSX.utils.book_append_sheet(wb, ts, "Tahapan");
+
+  const R=DATA.ref, len=Math.max(R.satker.length,R.sifat.length,R.tw.length,R.tahun.length,R.sasaran.length,3);
+  const ref=[["Satuan Kerja","Sifat Kinerja","Triwulan","Tahun","Sasaran Strategis","Ambang kategori","Nilai"]];
+  for(let i=0;i<len;i++) ref.push([n(R.satker[i]),n(R.sifat[i]),n(R.tw[i]),n(R.tahun[i]),n(R.sasaran[i]),i===0?"Tercapai (≥)":i===1?"Hampir tercapai (≥)":"",i<2?R.L[i]:""]);
+  const fs=XLSX.utils.aoa_to_sheet(ref); fs["!cols"]=[{wch:18},{wch:22},{wch:10},{wch:8},{wch:70},{wch:20},{wch:8}];
+  XLSX.utils.book_append_sheet(wb, fs, "Ref");
+  return XLSX.write(wb, {bookType:"xlsx", type:"array"});
+}
+
+/* ---------------- Firebase boot ---------------- */
+pickDefaultPeriod(); renderControls(); render();
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAMpEdvv8LUTlqZsrtBQR-8eW-kH-QtghE",
+  authDomain: "dashboard-iku-f6e88.firebaseapp.com",
+  projectId: "dashboard-iku-f6e88",
+  storageBucket: "dashboard-iku-f6e88.firebasestorage.app",
+  messagingSenderId: "263016340117",
+  appId: "1:263016340117:web:62ed4a7ce9d1c8f827999c",
+  measurementId: "G-PWNF3183NN"
+};
+
+// GANTI dengan alamat email petugas yang memang diizinkan mengedit dashboard.
+// Daftar yang sama harus dipasang pada Firestore Security Rules.
+const EDITOR_EMAILS = ["widyantylina@gmail.com"];
+const isEditor = user => !!user && EDITOR_EMAILS.map(x=>x.toLowerCase()).includes(String(user.email||"").toLowerCase());
+
+try {
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  auth = firebase.auth();
+  const firestore = firebase.firestore();
+  // Adapter untuk menjaga fungsi impor lama, sekarang diarahkan ke Cloud Firestore.
+  db = { doc(path) {
+    const parts = path.split("/");
+    const ref = firestore.doc(parts.join("/"));
+    return {
+      set: value => ref.set(value),
+      onSnapshot: (next, error) => ref.onSnapshot(snap => next({exists:snap.exists, data:()=>snap.data()}), error)
+    };
+  }};
+
+  $("btnLogin").addEventListener("click", async ()=>{
+    if (auth.currentUser) {
+      try { await auth.signOut(); toast("Anda telah logout."); }
+      catch(e) { toast("Logout gagal. Coba lagi.", true); }
+      return;
+    }
+    const password = prompt("Masukkan password petugas:");
+    if (!password) return;
+    try { await auth.signInWithEmailAndPassword(EDITOR_EMAILS[0], password); }
+    catch(e) { toast("Login gagal. Periksa password petugas.", true); }
+  });
+
+  $("btnChangePassword").addEventListener("click", async ()=>{
+    const user = auth.currentUser;
+    if (!user || !isEditor(user)) { toast("Login sebagai petugas terlebih dahulu.", true); return; }
+    const password = prompt("Masukkan password baru (minimal 6 karakter):");
+    if (!password) return;
+    if (password.length < 6) { toast("Password minimal 6 karakter.", true); return; }
+    const confirmPassword = prompt("Ulangi password baru:");
+    if (password !== confirmPassword) { toast("Konfirmasi password tidak cocok.", true); return; }
+    try {
+      await user.updatePassword(password);
+      toast("Password petugas berhasil diubah.");
+    } catch(e) {
+      toast(e.code === "auth/requires-recent-login" ? "Demi keamanan, logout lalu login kembali sebelum mengubah password." : "Password gagal diubah. Silakan login kembali lalu coba lagi.", true);
+    }
+  });
+
+  auth.onAuthStateChanged(user=>{
+    canWrite = isEditor(user);
+    $("btnLogin").textContent = user ? "Logout" : "Login";
+    $("btnLogin").title = user ? (canWrite ? `Login sebagai ${user.email}; dapat mengedit` : `Login sebagai ${user.email}; hanya dapat melihat`) : "Login untuk mengubah data bersama";
+    $("btnChangePassword").hidden = !(user && canWrite);
+  });
+
+  db.doc("shared/workbook").onSnapshot(snap=>{
+    if(!snap.exists){
+      if(SOURCE.kind==="shared"){ DATA=SEED; SOURCE={kind:"seed"}; pickDefaultPeriod(); renderControls(); render(); }
+      return;
+    }
+    const v=snap.data();
+    try{
+      const d=JSON.parse(v.json);
+      if(!d || !Array.isArray(d.master) || !Array.isArray(d.realisasi)) return;
+      if(SOURCE.kind==="shared" && SOURCE.at===v.at) return;
+      if(SOURCE.kind==="local") return;
+      DATA=d; SOURCE={kind:"shared", fileName:v.fileName, at:v.at};
+      pickDefaultPeriod(); renderControls(); render();
+      toast("Data dashboard bersama berhasil disinkronkan.");
+    }catch(e){ console.error("Data Firestore tidak valid",e); }
+  }, err=>{
+    console.error("Firestore listener error",err);
+    toast("Gagal membaca Firestore. Periksa koneksi dan Firestore Security Rules.", true);
+  });
+} catch(err) {
+  console.error("Firebase initialization error", err);
+  toast("Firebase gagal diinisialisasi. Periksa konfigurasi dan koneksi internet.", true);
+}
+
+})();
+</script>
+</body>
+</html>
